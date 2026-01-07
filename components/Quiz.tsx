@@ -96,7 +96,7 @@ export default function Quiz({ user }: Props) {
   }
 
   const createParticles = (x: number, y: number, type: 'star' | 'confetti' = 'star') => {
-    const newParticles = []
+    const newParticles: { id: number; x: number; y: number; emoji: string; angle: number; velocity: number }[] = []
     const count = type === 'confetti' ? 50 : 12
     for (let i = 0; i < count; i++) {
       newParticles.push({
