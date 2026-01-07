@@ -1,0 +1,89 @@
+'use client'
+
+import { createClient } from '@/lib/supabase/client'
+import { User } from '@supabase/supabase-js'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+
+type Props = {
+  user: User
+}
+
+export default function Navbar({ user }: Props) {
+  const [showMenu, setShowMenu] = useState(false)
+  const supabase = createClient()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
+  const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Player'
+  const avatarUrl = user.user_metadata?.avatar_url
+
+  return (
+    <nav className="glass-card m-4 px-4 py-3 flex items-center justify-between">
+      <Link href="/quiz" className="flex items-center gap-2">
+        <span className="text-2xl">⭐</span>
+        <span className="font-display text-xl gradient-text hidden sm:inline">11+ QUEST</span>
+      </Link>
+
+      <div className="flex items-center gap-4">
+        <Link 
+          href="/leaderboard" 
+          className="text-gray-300 hover:text-white transition-colors flex items-center gap-1"
+        >
+          <span>🏆</span>
+          <span className="hidden sm:inline">Leaderboard</span>
+        </Link>
+
+        <Link 
+          href="/dashboard" 
+          className="text-gray-300 hover:text-white transition-colors flex items-center gap-1"
+        >
+          <span>📊</span>
+          <span className="hidden sm:inline">Stats</span>
+        </Link>
+
+        <div className="relative">
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt={displayName}
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">
+                {displayName[0].toUpperCase()}
+              </div>
+            )}
+            <span className="text-white text-sm hidden sm:inline">{displayName}</span>
+          </button>
+
+          {showMenu && (
+            <div className="absolute right-0 mt-2 w-48 glass-card p-2 z-50">
+              <div className="px-3 py-2 text-sm text-gray-400 border-b border-white/10">
+                {user.email}
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-white/5 rounded-lg transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </nav>
+  )
+}
