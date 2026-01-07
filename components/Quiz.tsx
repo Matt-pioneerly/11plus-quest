@@ -1,6 +1,6 @@
-'use client'
+ 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { questionBank, subjectInfo, levelInfo, encouragements, shuffleArray, Question, Subject, Level } from '@/lib/questions'
@@ -11,6 +11,8 @@ type Props = {
 }
 
 type View = 'home' | 'levels' | 'quiz' | 'results'
+type Particle = { id: number; x: number; y: number; emoji: string; angle: number; velocity: number }
+type FloatingEmoji = { id: number; emoji: string; x: number }
 
 export default function Quiz({ user }: Props) {
   const supabase = createClient()
@@ -28,13 +30,12 @@ export default function Quiz({ user }: Props) {
   const [mockExamActive, setMockExamActive] = useState(false)
   const [mockTimeLimit, setMockTimeLimit] = useState(0)
   
-  // Gamification
   const [streak, setStreak] = useState(0)
   const [totalXP, setTotalXP] = useState(0)
   const [showXPGain, setShowXPGain] = useState<{ amount: number; streak: boolean } | null>(null)
-  const [particles, setParticles] = useState<{ id: number; x: number; y: number; emoji: string; angle: number; velocity: number }[]>([])
+  const [particles, setParticles] = useState<Particle[]>([])
   const [showCelebration, setShowCelebration] = useState(false)
-  const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; x: number }[]>([])
+  const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([])
   const [mascotMood, setMascotMood] = useState<'happy' | 'excited' | 'sad' | 'focused' | 'encouraging'>('happy')
   const [showStreakPopup, setShowStreakPopup] = useState(false)
   const [showQuickMockSelect, setShowQuickMockSelect] = useState(false)
@@ -49,7 +50,6 @@ export default function Quiz({ user }: Props) {
     totalCorrect: 0
   })
 
-  // Load user stats
   useEffect(() => {
     const loadStats = async () => {
       const { data } = await supabase
@@ -71,7 +71,6 @@ export default function Quiz({ user }: Props) {
     loadStats()
   }, [user.id, supabase])
 
-  // Timer
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (mockExamActive && currentView === 'quiz') {
@@ -96,7 +95,7 @@ export default function Quiz({ user }: Props) {
   }
 
   const createParticles = (x: number, y: number, type: 'star' | 'confetti' = 'star') => {
-    const newParticles: { id: number; x: number; y: number; emoji: string; angle: number; velocity: number }[] = []
+    const newParticles: Particle[] = []
     const count = type === 'confetti' ? 50 : 12
     for (let i = 0; i < count; i++) {
       newParticles.push({
@@ -280,7 +279,6 @@ export default function Quiz({ user }: Props) {
     const percentage = Math.round((score.correct / score.total) * 100)
     const xpEarned = score.correct * (currentLevel === 'hard' ? 30 : currentLevel === 'medium' ? 20 : 15)
     
-    // Save to scores table
     await supabase.from('scores').insert({
       user_id: user.id,
       user_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Anonymous',
@@ -294,7 +292,6 @@ export default function Quiz({ user }: Props) {
       xp_earned: xpEarned
     })
 
-    // Update user stats
     const { data: existingStats } = await supabase
       .from('user_stats')
       .select('*')
@@ -363,9 +360,16 @@ export default function Quiz({ user }: Props) {
   const timeRemaining = mockTimeLimit > 0 ? mockTimeLimit - mockExamTime : null
   const timeWarning = timeRemaining !== null && timeRemaining < 120
 
+  const isSubject = (s: string | null): s is Subject => {
+    return s === 'verbal' || s === 'nonverbal' || s === 'english' || s === 'maths'
+  }
+
+  const isLevel = (l: string | null): l is Level => {
+    return l === 'easy' || l === 'medium' || l === 'hard'
+  }
+
   return (
     <div className="p-4 max-w-4xl mx-auto relative">
-      {/* Particles */}
       {particles.map(p => (
         <div
           key={p.id}
@@ -382,7 +386,6 @@ export default function Quiz({ user }: Props) {
         </div>
       ))}
 
-      {/* Floating Emojis */}
       {floatingEmojis.map(e => (
         <div
           key={e.id}
@@ -393,7 +396,6 @@ export default function Quiz({ user }: Props) {
         </div>
       ))}
 
-      {/* Celebration Confetti */}
       {showCelebration && [...Array(30)].map((_, i) => (
         <div
           key={i}
@@ -408,7 +410,6 @@ export default function Quiz({ user }: Props) {
         </div>
       ))}
 
-      {/* XP Popup */}
       {showXPGain && (
         <div className="fixed top-1/3 left-1/2 -translate-x-1/2 z-50 animate-xp-pop text-center">
           <div className="text-3xl font-bold text-yellow-400" style={{ textShadow: '0 0 20px rgba(251,191,36,0.8)' }}>
@@ -418,7 +419,6 @@ export default function Quiz({ user }: Props) {
         </div>
       )}
 
-      {/* Streak Popup */}
       {showStreakPopup && streak >= 2 && (
         <div className="fixed top-2/5 left-1/2 -translate-x-1/2 z-50 animate-streak-pop text-2xl font-bold text-pink-400 whitespace-nowrap"
           style={{ textShadow: '0 0 30px rgba(244,114,182,0.8)' }}
@@ -427,7 +427,6 @@ export default function Quiz({ user }: Props) {
         </div>
       )}
 
-      {/* Quick Mock Modal */}
       {showQuickMockSelect && (
         <QuickMockModal
           onSelect={startQuickMock}
@@ -435,10 +434,8 @@ export default function Quiz({ user }: Props) {
         />
       )}
 
-      {/* HOME VIEW */}
       {currentView === 'home' && (
         <div className="animate-slide-in">
-          {/* Header */}
           <div className="text-center mb-6">
             <div className="flex justify-center gap-4 mb-4">
               <div className="glass-card px-4 py-2 flex items-center gap-2">
@@ -452,7 +449,6 @@ export default function Quiz({ user }: Props) {
             </div>
           </div>
 
-          {/* Mock Exams */}
           <h3 className="text-purple-300 mb-3 text-sm font-semibold">🎯 Mock Exams 모의고사</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <button
@@ -482,7 +478,6 @@ export default function Quiz({ user }: Props) {
             </button>
           </div>
 
-          {/* Subjects */}
           <h3 className="text-purple-300 mb-3 text-sm font-semibold">📚 Practice by Subject</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {(Object.entries(subjectInfo) as [Subject, typeof subjectInfo.verbal][]).map(([key, info]) => (
@@ -507,7 +502,6 @@ export default function Quiz({ user }: Props) {
             ))}
           </div>
 
-          {/* Stats */}
           <div className="glass-card p-4 flex justify-center gap-8">
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-400">{totalXP}</div>
@@ -525,8 +519,7 @@ export default function Quiz({ user }: Props) {
         </div>
       )}
 
-      {/* LEVELS VIEW */}
-      {currentView === 'levels' && currentSubject && currentSubject !== 'mock' && (
+      {currentView === 'levels' && currentSubject && isSubject(currentSubject) && (
         <div className="animate-slide-in">
           <button onClick={goHome} className="glass-card px-4 py-2 mb-4 text-sm">← Back</button>
           
@@ -564,10 +557,8 @@ export default function Quiz({ user }: Props) {
         </div>
       )}
 
-      {/* QUIZ VIEW */}
       {currentView === 'quiz' && currentQuestion && (
         <div className={animation === 'slideIn' ? 'animate-slide-in' : ''}>
-          {/* Quiz Header */}
           <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
             <button onClick={goHome} className="glass-card px-3 py-2 text-sm">✕ Exit</button>
             
@@ -590,7 +581,6 @@ export default function Quiz({ user }: Props) {
             </div>
           </div>
 
-          {/* Progress Bar */}
           <div className="h-1.5 bg-white/10 rounded-full mb-5 overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-pink-400 to-purple-400 rounded-full transition-all duration-500"
@@ -598,19 +588,17 @@ export default function Quiz({ user }: Props) {
             />
           </div>
 
-          {/* Question Card */}
           <div className={`glass-card p-6 ${animation === 'correct' ? 'animate-correct' : animation === 'incorrect' ? 'animate-shake' : ''}`}>
-            {/* Question metadata */}
-            {currentSubject === 'mock' && currentQuestion.subject && (
+            {currentSubject === 'mock' && currentQuestion.subject && isSubject(currentQuestion.subject) && (
               <div className="flex gap-2 mb-3 flex-wrap">
                 <span
                   className="px-3 py-1 rounded-full text-xs font-semibold"
                   style={{
-                    background: `${subjectInfo[currentQuestion.subject as Subject].color}20`,
-                    color: subjectInfo[currentQuestion.subject as Subject].color
+                    background: `${subjectInfo[currentQuestion.subject].color}20`,
+                    color: subjectInfo[currentQuestion.subject].color
                   }}
                 >
-                  {subjectInfo[currentQuestion.subject as Subject].mascot} {subjectInfo[currentQuestion.subject as Subject].name}
+                  {subjectInfo[currentQuestion.subject].mascot} {subjectInfo[currentQuestion.subject].name}
                 </span>
               </div>
             )}
@@ -623,7 +611,6 @@ export default function Quiz({ user }: Props) {
               {currentQuestion.question}
             </h2>
 
-            {/* Options */}
             <div className="space-y-2">
               {currentQuestion.options.map((option, index) => {
                 const isSelected = selectedAnswer === index
@@ -657,7 +644,6 @@ export default function Quiz({ user }: Props) {
               })}
             </div>
 
-            {/* Result Feedback */}
             {showResult && (
               <div className={`mt-5 p-4 rounded-xl animate-slide-in ${
                 selectedAnswer === currentQuestion.answer
@@ -676,7 +662,6 @@ export default function Quiz({ user }: Props) {
               </div>
             )}
 
-            {/* Action Button */}
             <div className="mt-6 text-center">
               {!showResult ? (
                 <button
@@ -703,7 +688,6 @@ export default function Quiz({ user }: Props) {
         </div>
       )}
 
-      {/* RESULTS VIEW */}
       {currentView === 'results' && (
         <div className="animate-slide-in text-center">
           <div className="glass-card p-8">
@@ -755,9 +739,9 @@ export default function Quiz({ user }: Props) {
                 >
                   🎯 New Mock
                 </button>
-              ) : currentLevel && currentLevel !== 'mock' && currentLevel !== 'quick' && currentLevel !== 'full' && currentSubject !== 'mock' ? (
+              ) : isSubject(currentSubject) && isLevel(currentLevel) ? (
                 <button
-                  onClick={() => startSubject(currentSubject as Subject, currentLevel as Level)}
+                  onClick={() => startSubject(currentSubject, currentLevel)}
                   className="px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-white"
                 >
                   🔄 Try Again
