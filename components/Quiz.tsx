@@ -434,9 +434,9 @@ export default function Quiz({ user }: Props) {
         />
       )}
 
-      {currentView === 'home' && (
+ {currentView === 'home' && (
         <div className="animate-slide-in">
-          <div className="text-center mb-6">
+          <div className="text-center mb-8">
             <div className="flex justify-center gap-4 mb-4">
               <div className="glass-card px-4 py-2 flex items-center gap-2">
                 <span>⚡</span>
@@ -449,14 +449,32 @@ export default function Quiz({ user }: Props) {
             </div>
           </div>
 
-          <h3 className="text-purple-300 mb-3 text-sm font-semibold">🎯 Mock Exams 모의고사</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* Practice by Subject - NOW FIRST */}
+          <h3 className="text-purple-300 mb-4 text-sm font-semibold">📚 Practice by Subject</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+            {(Object.entries(subjectInfo) as [Subject, typeof subjectInfo.verbal][]).map(([key, info]) => (
+              <button
+                key={key}
+                onClick={() => selectSubject(key)}
+                className="glass-card p-6 text-center hover:scale-105 transition-transform relative overflow-hidden group"
+              >
+                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${info.gradient}`} />
+                <div className="text-5xl mb-3 animate-float">{info.mascot}</div>
+                <h3 className="font-semibold text-sm" style={{ color: info.color }}>{info.name}</h3>
+                <p className="text-gray-500 text-xs mt-1">{info.mascotName}</p>
+              </button>
+            ))}
+          </div>
+
+          {/* Mock Exams - NOW SECOND */}
+          <h3 className="text-purple-300 mb-4 text-sm font-semibold">🎯 Mock Exams 모의고사</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             <button
               onClick={startFullMockExam}
-              className="glass-card p-5 text-left border-2 border-red-500/40 hover:border-red-500/60 transition-all animate-pulse-glow"
+              className="glass-card p-6 text-left border-2 border-red-500/40 hover:border-red-500/60 transition-all animate-pulse-glow"
             >
               <div className="flex items-center gap-4">
-                <span className="text-4xl">📋</span>
+                <span className="text-5xl">📋</span>
                 <div>
                   <h4 className="font-display text-lg text-white">FULL MOCK</h4>
                   <p className="text-red-400 text-sm">50 questions • 45 mins • Real exam!</p>
@@ -466,10 +484,10 @@ export default function Quiz({ user }: Props) {
 
             <button
               onClick={() => setShowQuickMockSelect(true)}
-              className="glass-card p-5 text-left border-2 border-yellow-500/40 hover:border-yellow-500/60 transition-all"
+              className="glass-card p-6 text-left border-2 border-yellow-500/40 hover:border-yellow-500/60 transition-all"
             >
               <div className="flex items-center gap-4">
-                <span className="text-4xl">⚡</span>
+                <span className="text-5xl">⚡</span>
                 <div>
                   <h4 className="font-display text-lg text-white">QUICK MOCK</h4>
                   <p className="text-yellow-400 text-sm">20 questions • 15 mins • Fast practice!</p>
@@ -478,48 +496,23 @@ export default function Quiz({ user }: Props) {
             </button>
           </div>
 
-          <h3 className="text-purple-300 mb-3 text-sm font-semibold">📚 Practice by Subject</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {(Object.entries(subjectInfo) as [Subject, typeof subjectInfo.verbal][]).map(([key, info]) => (
-              <button
-                key={key}
-                onClick={() => selectSubject(key)}
-                className="glass-card p-5 text-center hover:scale-105 transition-transform relative overflow-hidden group"
-              >
-                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${info.gradient}`} />
-                <div className="text-4xl mb-2 animate-float">{info.mascot}</div>
-                <h3 className="font-semibold text-sm" style={{ color: info.color }}>{info.name}</h3>
-                <p className="text-gray-500 text-xs">{info.mascotName}</p>
-                
-                <button
-                  onClick={(e) => { e.stopPropagation(); startSubjectMock(key) }}
-                  className="mt-3 px-3 py-1 rounded-full text-xs font-semibold transition-colors"
-                  style={{ background: `${info.color}30`, color: info.color, border: `1px solid ${info.color}50` }}
-                >
-                  ⏱️ 10min Mock
-                </button>
-              </button>
-            ))}
-          </div>
-
-          <div className="glass-card p-4 flex justify-center gap-8">
+          {/* Stats */}
+          <div className="glass-card p-6 flex justify-center gap-12">
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-400">{totalXP}</div>
-              <div className="text-xs text-gray-500">Total XP</div>
+              <div className="text-3xl font-bold text-yellow-400">{totalXP}</div>
+              <div className="text-xs text-gray-500 mt-1">Total XP</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-emerald-400">{achievements.totalCorrect}</div>
-              <div className="text-xs text-gray-500">Correct</div>
+              <div className="text-3xl font-bold text-emerald-400">{achievements.totalCorrect}</div>
+              <div className="text-xs text-gray-500 mt-1">Correct</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-pink-400">{achievements.perfectScores}</div>
-              <div className="text-xs text-gray-500">Perfect</div>
+              <div className="text-3xl font-bold text-pink-400">{achievements.perfectScores}</div>
+              <div className="text-xs text-gray-500 mt-1">Perfect</div>
             </div>
           </div>
         </div>
       )}
-
-      {currentView === 'levels' && currentSubject && isSubject(currentSubject) && (
         <div className="animate-slide-in">
           <button onClick={goHome} className="glass-card px-4 py-2 mb-4 text-sm">← Back</button>
           
