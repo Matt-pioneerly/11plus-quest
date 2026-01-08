@@ -1,4 +1,4 @@
- 'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
@@ -137,26 +137,6 @@ export default function Quiz({ user }: Props) {
     setCurrentView('quiz')
     setAnimation('slideIn')
     setMascotMood('happy')
-  }
-
-  const startSubjectMock = (subject: Subject) => {
-    const allQs = [...questionBank[subject].easy, ...questionBank[subject].medium, ...questionBank[subject].hard]
-    const shuffled = shuffleArray(allQs).slice(0, 15).map(q => ({ ...q, subject, level: 'mixed' as const }))
-    
-    setShuffledQuestions(shuffled)
-    setCurrentSubject(subject)
-    setCurrentLevel('mock')
-    setCurrentQuestionIndex(0)
-    setSelectedAnswer(null)
-    setShowResult(false)
-    setScore({ correct: 0, total: 0 })
-    setStreak(0)
-    setMockExamTime(0)
-    setMockTimeLimit(10 * 60)
-    setMockExamActive(true)
-    setCurrentView('quiz')
-    setAnimation('slideIn')
-    setMascotMood('focused')
   }
 
   const startFullMockExam = () => {
@@ -434,7 +414,8 @@ export default function Quiz({ user }: Props) {
         />
       )}
 
- {currentView === 'home' && (
+      {/* HOME VIEW */}
+      {currentView === 'home' && (
         <div className="animate-slide-in">
           <div className="text-center mb-8">
             <div className="flex justify-center gap-4 mb-4">
@@ -449,7 +430,7 @@ export default function Quiz({ user }: Props) {
             </div>
           </div>
 
-          {/* Practice by Subject - NOW FIRST */}
+          {/* Practice by Subject */}
           <h3 className="text-purple-300 mb-4 text-sm font-semibold">📚 Practice by Subject</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
             {(Object.entries(subjectInfo) as [Subject, typeof subjectInfo.verbal][]).map(([key, info]) => (
@@ -466,7 +447,7 @@ export default function Quiz({ user }: Props) {
             ))}
           </div>
 
-          {/* Mock Exams - NOW SECOND */}
+          {/* Mock Exams */}
           <h3 className="text-purple-300 mb-4 text-sm font-semibold">🎯 Mock Exams 모의고사</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             <button
@@ -513,6 +494,9 @@ export default function Quiz({ user }: Props) {
           </div>
         </div>
       )}
+
+      {/* LEVELS VIEW */}
+      {currentView === 'levels' && currentSubject && isSubject(currentSubject) && (
         <div className="animate-slide-in">
           <button onClick={goHome} className="glass-card px-4 py-2 mb-4 text-sm">← Back</button>
           
@@ -550,6 +534,7 @@ export default function Quiz({ user }: Props) {
         </div>
       )}
 
+      {/* QUIZ VIEW */}
       {currentView === 'quiz' && currentQuestion && (
         <div className={animation === 'slideIn' ? 'animate-slide-in' : ''}>
           <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
@@ -681,6 +666,7 @@ export default function Quiz({ user }: Props) {
         </div>
       )}
 
+      {/* RESULTS VIEW */}
       {currentView === 'results' && (
         <div className="animate-slide-in text-center">
           <div className="glass-card p-8">
