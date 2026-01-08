@@ -1,19 +1,17 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState, Suspense } from 'react'
 import { User } from '@supabase/supabase-js'
 import Navbar from '@/components/Navbar'
 
-export default function PricingPage() {
+function PricingContent() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const canceled = searchParams.get('canceled')
   const supabase = createClient()
 
   useEffect(() => {
@@ -25,7 +23,6 @@ export default function PricingPage() {
       }
       setUser(user)
 
-      // Check subscription status
       const { data } = await supabase
         .from('user_stats')
         .select('subscription_status')
@@ -86,12 +83,6 @@ export default function PricingPage() {
       <Navbar user={user} />
       
       <div className="p-4 max-w-4xl mx-auto">
-        {canceled && (
-          <div className="glass-card p-4 mb-6 border border-yellow-500/30 text-yellow-400 text-center">
-            Checkout canceled. No worries - you can upgrade anytime!
-          </div>
-        )}
-
         <div className="text-center mb-8">
           <h1 className="font-display text-4xl gradient-text mb-2">Upgrade to Pro ⭐</h1>
           <p className="text-purple-400">Unlock unlimited practice and mock exams!</p>
@@ -197,5 +188,13 @@ export default function PricingPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-4xl animate-float">💎</div></div>}>
+      <PricingContent />
+    </Suspense>
   )
 }
