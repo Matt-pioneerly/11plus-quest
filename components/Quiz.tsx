@@ -5,6 +5,7 @@ import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { questionBank, subjectInfo, levelInfo, encouragements, shuffleArray, Question, Subject, Level } from '@/lib/questions'
 import QuickMockModal from './QuickMockModal'
+import UpgradeModal from './UpgradeModal'
 
 type Props = {
   user: User
@@ -13,6 +14,8 @@ type Props = {
 type View = 'home' | 'levels' | 'quiz' | 'results'
 type Particle = { id: number; x: number; y: number; emoji: string; angle: number; velocity: number }
 type FloatingEmoji = { id: number; emoji: string; x: number }
+
+const FREE_DAILY_LIMIT = 5
 
 export default function Quiz({ user }: Props) {
   const supabase = createClient()
@@ -39,6 +42,12 @@ export default function Quiz({ user }: Props) {
   const [mascotMood, setMascotMood] = useState<'happy' | 'excited' | 'sad' | 'focused' | 'encouraging'>('happy')
   const [showStreakPopup, setShowStreakPopup] = useState(false)
   const [showQuickMockSelect, setShowQuickMockSelect] = useState(false)
+  
+  // Subscription state
+  const [isPro, setIsPro] = useState(false)
+  const [questionsToday, setQuestionsToday] = useState(0)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [upgradeMessage, setUpgradeMessage] = useState('')
 
   const [achievements, setAchievements] = useState({
     verbal: { easy: 0, medium: 0, hard: 0 },
@@ -60,6 +69,16 @@ export default function Quiz({ user }: Props) {
       
       if (data) {
         setTotalXP(data.total_xp || 0)
+        setIsPro(data.subscription_status === 'active')
+        
+        // Check if questions_today should reset (new day)
+        const today = new Date().toISOString().split('T')[0]
+        if (data.last_question_date !== today) {
+          setQuestionsToday(0)
+        } else {
+          setQuestionsToday(data.questions_today || 0)
+        }
+        
         setAchievements(prev => ({
           ...prev,
           totalCorrect: data.total_correct || 0,
@@ -94,6 +113,31 @@ export default function Quiz({ user }: Props) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
+  const canDoQuestion = () => {
+    if (isPro) return true
+    return questionsToday < FREE_DAILY_LIMIT
+  }
+
+  const canDoMock = () => {
+    return isPro
+  }
+
+  const incrementQuestionCount = async () => {
+    if (isPro) return
+    
+    const newCount = questionsToday + 1
+    setQuestionsToday(newCount)
+    
+    const today = new Date().toISOString().split('T')[0]
+    await supabase
+      .from('user_stats')
+      .upsert({
+        user_id: user.id,
+        questions_today: newCount,
+        last_question_date: today,
+      }, { onConflict: 'user_id' })
+  }
+
   const createParticles = (x: number, y: number, type: 'star' | 'confetti' = 'star') => {
     const newParticles: Particle[] = []
     const count = type === 'confetti' ? 50 : 12
@@ -124,6 +168,12 @@ export default function Quiz({ user }: Props) {
   }
 
   const startSubject = (subject: Subject, level: Level) => {
+    if (!canDoQuestion()) {
+      setUpgradeMessage("You've used all 5 free questions today. Upgrade for unlimited!")
+      setShowUpgradeModal(true)
+      return
+    }
+    
     setCurrentSubject(subject)
     setCurrentLevel(level)
     setShuffledQuestions(shuffleArray(questionBank[subject][level]))
@@ -140,6 +190,12 @@ export default function Quiz({ user }: Props) {
   }
 
   const startFullMockExam = () => {
+    if (!canDoMock()) {
+      setUpgradeMessage("Mock exams are a Pro feature. Upgrade to access full exam simulations!")
+      setShowUpgradeModal(true)
+      return
+    }
+    
     const allQuestions: Question[] = []
     const subjects: Subject[] = ['verbal', 'nonverbal', 'english', 'maths']
     const levels: Level[] = ['easy', 'medium', 'hard']
@@ -169,6 +225,13 @@ export default function Quiz({ user }: Props) {
   }
 
   const startQuickMock = (subject: Subject | 'all') => {
+    if (!canDoMock()) {
+      setUpgradeMessage("Mock exams are a Pro feature. Upgrade to access quick mock exams!")
+      setShowUpgradeModal(true)
+      setShowQuickMockSelect(false)
+      return
+    }
+    
     let questions: Question[] = []
     
     if (subject !== 'all') {
@@ -213,8 +276,11 @@ export default function Quiz({ user }: Props) {
     }
   }
 
-  const checkAnswer = () => {
+  const checkAnswer = async () => {
     if (selectedAnswer === null) return
+    
+    // Increment question count for free users
+    await incrementQuestionCount()
     
     const isCorrect = selectedAnswer === shuffledQuestions[currentQuestionIndex].answer
     setShowResult(true)
@@ -300,6 +366,14 @@ export default function Quiz({ user }: Props) {
   }
 
   const nextQuestion = async () => {
+    // Check if free user has hit limit
+    if (!isPro && !mockExamActive && questionsToday >= FREE_DAILY_LIMIT) {
+      await saveScore()
+      setMockExamActive(false)
+      setCurrentView('results')
+      return
+    }
+    
     if (currentQuestionIndex < shuffledQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
       setSelectedAnswer(null)
@@ -339,6 +413,7 @@ export default function Quiz({ user }: Props) {
   const currentQuestion = shuffledQuestions[currentQuestionIndex]
   const timeRemaining = mockTimeLimit > 0 ? mockTimeLimit - mockExamTime : null
   const timeWarning = timeRemaining !== null && timeRemaining < 120
+  const remainingFreeQuestions = FREE_DAILY_LIMIT - questionsToday
 
   const isSubject = (s: string | null): s is Subject => {
     return s === 'verbal' || s === 'nonverbal' || s === 'english' || s === 'maths'
@@ -414,6 +489,13 @@ export default function Quiz({ user }: Props) {
         />
       )}
 
+      {showUpgradeModal && (
+        <UpgradeModal
+          onClose={() => setShowUpgradeModal(false)}
+          message={upgradeMessage}
+        />
+      )}
+
       {/* HOME VIEW */}
       {currentView === 'home' && (
         <div className="animate-slide-in">
@@ -428,6 +510,19 @@ export default function Quiz({ user }: Props) {
                 <span className="text-emerald-400 font-bold">{achievements.mockExams} Mocks</span>
               </div>
             </div>
+            
+            {/* Free tier indicator */}
+            {!isPro && (
+              <div className="glass-card px-4 py-2 inline-flex items-center gap-2 text-sm">
+                <span>📝</span>
+                <span className="text-gray-400">
+                  {remainingFreeQuestions > 0 
+                    ? `${remainingFreeQuestions} free questions left today`
+                    : "Daily limit reached"
+                  }
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Practice by Subject */}
@@ -448,30 +543,45 @@ export default function Quiz({ user }: Props) {
           </div>
 
           {/* Mock Exams */}
-          <h3 className="text-purple-300 mb-4 text-sm font-semibold">🎯 Mock Exams 모의고사</h3>
+          <h3 className="text-purple-300 mb-4 text-sm font-semibold">
+            🎯 Mock Exams 모의고사 
+            {!isPro && <span className="text-yellow-500 ml-2">⭐ Pro</span>}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             <button
               onClick={startFullMockExam}
-              className="glass-card p-6 text-left border-2 border-red-500/40 hover:border-red-500/60 transition-all animate-pulse-glow"
+              className={`glass-card p-6 text-left border-2 transition-all ${
+                isPro 
+                  ? 'border-red-500/40 hover:border-red-500/60 animate-pulse-glow' 
+                  : 'border-white/10 opacity-75'
+              }`}
             >
               <div className="flex items-center gap-4">
-                <span className="text-5xl">📋</span>
+                <span className="text-5xl">{isPro ? '📋' : '🔒'}</span>
                 <div>
                   <h4 className="font-display text-lg text-white">FULL MOCK</h4>
-                  <p className="text-red-400 text-sm">50 questions • 45 mins • Real exam!</p>
+                  <p className={isPro ? 'text-red-400 text-sm' : 'text-gray-500 text-sm'}>
+                    50 questions • 45 mins • Real exam!
+                  </p>
                 </div>
               </div>
             </button>
 
             <button
               onClick={() => setShowQuickMockSelect(true)}
-              className="glass-card p-6 text-left border-2 border-yellow-500/40 hover:border-yellow-500/60 transition-all"
+              className={`glass-card p-6 text-left border-2 transition-all ${
+                isPro 
+                  ? 'border-yellow-500/40 hover:border-yellow-500/60' 
+                  : 'border-white/10 opacity-75'
+              }`}
             >
               <div className="flex items-center gap-4">
-                <span className="text-5xl">⚡</span>
+                <span className="text-5xl">{isPro ? '⚡' : '🔒'}</span>
                 <div>
                   <h4 className="font-display text-lg text-white">QUICK MOCK</h4>
-                  <p className="text-yellow-400 text-sm">20 questions • 15 mins • Fast practice!</p>
+                  <p className={isPro ? 'text-yellow-400 text-sm' : 'text-gray-500 text-sm'}>
+                    20 questions • 15 mins • Fast practice!
+                  </p>
                 </div>
               </div>
             </button>
@@ -506,6 +616,12 @@ export default function Quiz({ user }: Props) {
               {subjectInfo[currentSubject].name}
             </h2>
             <p className="text-gray-500 mt-1">Choose your level! 레벨을 선택하세요!</p>
+            
+            {!isPro && (
+              <p className="text-yellow-500 text-sm mt-2">
+                {remainingFreeQuestions} free questions remaining today
+              </p>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -733,6 +849,19 @@ export default function Quiz({ user }: Props) {
                 🏠 Home
               </button>
             </div>
+            
+            {/* Upgrade prompt for free users */}
+            {!isPro && (
+              <div className="mt-6 p-4 border border-yellow-500/30 rounded-xl">
+                <p className="text-yellow-400 text-sm mb-2">Want unlimited practice?</p>
+                <button
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="text-sm bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg font-bold"
+                >
+                  ⭐ Upgrade to Pro
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="glass-card p-4 mt-4 text-gray-400 text-sm">

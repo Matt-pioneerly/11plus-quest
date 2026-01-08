@@ -5,7 +5,7 @@ import { User } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type Props = {
   user: User
@@ -13,8 +13,22 @@ type Props = {
 
 export default function Navbar({ user }: Props) {
   const [showMenu, setShowMenu] = useState(false)
+  const [isPro, setIsPro] = useState(false)
   const supabase = createClient()
   const router = useRouter()
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      const { data } = await supabase
+        .from('user_stats')
+        .select('subscription_status')
+        .eq('user_id', user.id)
+        .single()
+      
+      setIsPro(data?.subscription_status === 'active')
+    }
+    checkSubscription()
+  }, [user.id, supabase])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -32,6 +46,21 @@ export default function Navbar({ user }: Props) {
       </Link>
 
       <div className="flex items-center gap-4">
+        {!isPro && (
+          <Link 
+            href="/pricing" 
+            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity"
+          >
+            ⭐ Upgrade
+          </Link>
+        )}
+
+        {isPro && (
+          <span className="text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-1 rounded-full font-bold">
+            PRO
+          </span>
+        )}
+
         <Link 
           href="/leaderboard" 
           className="text-gray-300 hover:text-white transition-colors flex items-center gap-1"
@@ -74,6 +103,14 @@ export default function Navbar({ user }: Props) {
               <div className="px-3 py-2 text-sm text-gray-400 border-b border-white/10">
                 {user.email}
               </div>
+              {isPro && (
+                <Link
+                  href="/pricing"
+                  className="block px-3 py-2 text-sm text-purple-400 hover:bg-white/5 rounded-lg transition-colors"
+                >
+                  Manage Subscription
+                </Link>
+              )}
               <button
                 onClick={handleSignOut}
                 className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-white/5 rounded-lg transition-colors"
