@@ -65,7 +65,7 @@ export default function Home() {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             <Link href="/about" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">About</Link>
-            <Link href="/resources" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Resources</Link>
+            <Link href="/resources" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">11+ Resources for Parents</Link>
             <Link href="/pricing" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Pricing</Link>
             <Link 
               href="/login" 

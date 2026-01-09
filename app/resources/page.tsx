@@ -8,14 +8,14 @@ export const metadata: Metadata = {
 }
 
 const regions = [
-  { slug: 'warwickshire', name: 'Warwickshire', schools: 5, color: '#f472b6' },
-  { slug: 'birmingham', name: 'Birmingham', schools: 8, color: '#a78bfa' },
-  { slug: 'buckinghamshire', name: 'Buckinghamshire', schools: 13, color: '#34d399' },
-  { slug: 'kent', name: 'Kent', schools: 32, color: '#fb7185' },
-  { slug: 'essex', name: 'Essex', schools: 4, color: '#fbbf24' },
-  { slug: 'lincolnshire', name: 'Lincolnshire', schools: 14, color: '#60a5fa' },
-  { slug: 'yorkshire', name: 'Yorkshire', schools: 3, color: '#f472b6' },
-  { slug: 'greater-london', name: 'Greater London', schools: 10, color: '#a78bfa' },
+  { slug: 'warwickshire', name: 'Warwickshire', schools: 5, color: '#ec4899' },
+  { slug: 'birmingham', name: 'Birmingham', schools: 8, color: '#a855f7' },
+  { slug: 'buckinghamshire', name: 'Buckinghamshire', schools: 13, color: '#10b981' },
+  { slug: 'kent', name: 'Kent', schools: 32, color: '#f43f5e' },
+  { slug: 'essex', name: 'Essex', schools: 4, color: '#f59e0b' },
+  { slug: 'lincolnshire', name: 'Lincolnshire', schools: 14, color: '#3b82f6' },
+  { slug: 'yorkshire', name: 'Yorkshire', schools: 3, color: '#ec4899' },
+  { slug: 'greater-london', name: 'Greater London', schools: 10, color: '#a855f7' },
 ]
 
 const guides = [
@@ -38,30 +38,32 @@ const advice = [
 
 export default function ResourcesPage() {
   return (
-    <main className="min-h-screen">
+    <main>
       {/* Navigation */}
-      <nav className="flex items-center justify-between p-4 max-w-6xl mx-auto">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl">⭐</span>
-          <span className="font-display text-xl gradient-text">11+ QUEST</span>
-        </Link>
-        <div className="hidden md:flex items-center gap-6">
-          <Link href="/about" className="text-gray-400 hover:text-white transition-colors text-sm">About</Link>
-          <Link href="/resources" className="text-white font-semibold text-sm">11+ Resources for Parents</Link>
-          <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors text-sm">Pricing</Link>
-          <Link href="/login" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+      <nav className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50">
+        <div className="flex items-center justify-between p-4 max-w-6xl mx-auto">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="text-2xl">⭐</span>
+            <span className="font-display text-xl bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">11+ QUEST</span>
+          </Link>
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="/about" className="text-slate-600 hover:text-slate-900 transition-colors text-sm">About</Link>
+            <Link href="/resources" className="text-pink-600 font-semibold text-sm">11+ Resources for Parents</Link>
+            <Link href="/pricing" className="text-slate-600 hover:text-slate-900 transition-colors text-sm">Pricing</Link>
+            <Link href="/login" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+              Start Free
+            </Link>
+          </div>
+          <Link href="/login" className="md:hidden bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">
             Start Free
           </Link>
         </div>
-        <Link href="/login" className="md:hidden bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">
-          Start Free
-        </Link>
       </nav>
 
       {/* Hero */}
       <section className="py-12 md:py-16 px-4 max-w-6xl mx-auto text-center">
-        <h1 className="font-display text-4xl md:text-5xl gradient-text mb-4">Resources for Parents</h1>
-        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+        <h1 className="font-display text-4xl md:text-5xl bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-4">Resources for Parents</h1>
+        <p className="text-slate-600 text-lg max-w-2xl mx-auto">
           Everything you need to know about the 11+ exam. Regional guides, preparation tips, 
           and expert advice to help your child succeed.
         </p>
@@ -70,25 +72,25 @@ export default function ResourcesPage() {
       {/* Quick Links */}
       <section className="px-4 max-w-6xl mx-auto mb-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <a href="#regions" className="glass-card p-4 text-center hover:bg-white/10 transition-colors">
+          <a href="#regions" className="bg-white rounded-xl p-4 text-center hover:shadow-lg transition-shadow border border-slate-200">
             <span className="text-2xl">🗺️</span>
-            <p className="text-white font-semibold mt-2">By Region</p>
-            <p className="text-gray-500 text-xs">Find local grammar schools</p>
+            <p className="text-slate-800 font-semibold mt-2">By Region</p>
+            <p className="text-slate-500 text-xs">Find local grammar schools</p>
           </a>
-          <a href="#guides" className="glass-card p-4 text-center hover:bg-white/10 transition-colors">
+          <a href="#guides" className="bg-white rounded-xl p-4 text-center hover:shadow-lg transition-shadow border border-slate-200">
             <span className="text-2xl">📖</span>
-            <p className="text-white font-semibold mt-2">Exam Guides</p>
-            <p className="text-gray-500 text-xs">Understand the 11+</p>
+            <p className="text-slate-800 font-semibold mt-2">Exam Guides</p>
+            <p className="text-slate-500 text-xs">Understand the 11+</p>
           </a>
-          <a href="#advice" className="glass-card p-4 text-center hover:bg-white/10 transition-colors">
+          <a href="#advice" className="bg-white rounded-xl p-4 text-center hover:shadow-lg transition-shadow border border-slate-200">
             <span className="text-2xl">💡</span>
-            <p className="text-white font-semibold mt-2">Parent Advice</p>
-            <p className="text-gray-500 text-xs">Tips and strategies</p>
+            <p className="text-slate-800 font-semibold mt-2">Parent Advice</p>
+            <p className="text-slate-500 text-xs">Tips and strategies</p>
           </a>
-          <Link href="/resources/dates" className="glass-card p-4 text-center hover:bg-white/10 transition-colors">
+          <Link href="/resources/dates" className="bg-white rounded-xl p-4 text-center hover:shadow-lg transition-shadow border border-slate-200">
             <span className="text-2xl">📅</span>
-            <p className="text-white font-semibold mt-2">Key Dates 2025</p>
-            <p className="text-gray-500 text-xs">Registration & exam dates</p>
+            <p className="text-slate-800 font-semibold mt-2">Key Dates 2025</p>
+            <p className="text-slate-500 text-xs">Registration & exam dates</p>
           </Link>
         </div>
       </section>
@@ -97,10 +99,10 @@ export default function ResourcesPage() {
       <section id="regions" className="py-12 px-4 max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2">🗺️ Grammar Schools by Region</h2>
-            <p className="text-gray-400">Find 11+ information specific to your area</p>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">🗺️ Grammar Schools by Region</h2>
+            <p className="text-slate-600">Find 11+ information specific to your area</p>
           </div>
-          <Link href="/resources/regions" className="text-pink-400 hover:text-pink-300 text-sm font-semibold hidden md:block">
+          <Link href="/resources/regions" className="text-pink-600 hover:text-pink-700 text-sm font-semibold hidden md:block">
             View all regions →
           </Link>
         </div>
@@ -110,18 +112,18 @@ export default function ResourcesPage() {
             <Link
               key={region.slug}
               href={`/resources/regions/${region.slug}`}
-              className="glass-card p-5 hover:bg-white/10 transition-all hover:scale-[1.02]"
+              className="bg-white rounded-xl p-5 hover:shadow-lg transition-all border border-slate-200"
             >
-              <h3 className="font-bold text-white mb-1">{region.name}</h3>
-              <p className="text-gray-500 text-sm">{region.schools} grammar schools</p>
-              <div className="mt-3 h-1 rounded-full bg-white/10 overflow-hidden">
+              <h3 className="font-bold text-slate-800 mb-1">{region.name}</h3>
+              <p className="text-slate-500 text-sm">{region.schools} grammar schools</p>
+              <div className="mt-3 h-1 rounded-full bg-slate-100 overflow-hidden">
                 <div className="h-full rounded-full" style={{ width: `${Math.min(region.schools * 3, 100)}%`, background: region.color }} />
               </div>
             </Link>
           ))}
         </div>
         
-        <Link href="/resources/regions" className="block text-center text-pink-400 hover:text-pink-300 text-sm font-semibold mt-6 md:hidden">
+        <Link href="/resources/regions" className="block text-center text-pink-600 hover:text-pink-700 text-sm font-semibold mt-6 md:hidden">
           View all regions →
         </Link>
       </section>
@@ -129,8 +131,8 @@ export default function ResourcesPage() {
       {/* Exam Guides */}
       <section id="guides" className="py-12 px-4 max-w-6xl mx-auto">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-2">📖 11+ Exam Guides</h2>
-          <p className="text-gray-400">Understanding the exam format and content</p>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">📖 11+ Exam Guides</h2>
+          <p className="text-slate-600">Understanding the exam format and content</p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -138,11 +140,11 @@ export default function ResourcesPage() {
             <Link
               key={guide.slug}
               href={`/resources/guides/${guide.slug}`}
-              className="glass-card p-5 hover:bg-white/10 transition-all hover:scale-[1.02] group"
+              className="bg-white rounded-xl p-5 hover:shadow-lg transition-all border border-slate-200 group"
             >
               <span className="text-3xl">{guide.icon}</span>
-              <h3 className="font-bold text-white mt-3 mb-1 group-hover:text-pink-400 transition-colors">{guide.title}</h3>
-              <p className="text-gray-500 text-sm">{guide.desc}</p>
+              <h3 className="font-bold text-slate-800 mt-3 mb-1 group-hover:text-pink-600 transition-colors">{guide.title}</h3>
+              <p className="text-slate-500 text-sm">{guide.desc}</p>
             </Link>
           ))}
         </div>
@@ -151,8 +153,8 @@ export default function ResourcesPage() {
       {/* Parent Advice */}
       <section id="advice" className="py-12 px-4 max-w-6xl mx-auto">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-2">💡 Advice for Parents</h2>
-          <p className="text-gray-400">Practical tips from experienced 11+ parents</p>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">💡 Advice for Parents</h2>
+          <p className="text-slate-600">Practical tips from experienced 11+ parents</p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -160,11 +162,11 @@ export default function ResourcesPage() {
             <Link
               key={article.slug}
               href={`/resources/advice/${article.slug}`}
-              className="glass-card p-5 hover:bg-white/10 transition-all hover:scale-[1.02] group"
+              className="bg-white rounded-xl p-5 hover:shadow-lg transition-all border border-slate-200 group"
             >
               <span className="text-3xl">{article.icon}</span>
-              <h3 className="font-bold text-white mt-3 mb-1 group-hover:text-pink-400 transition-colors">{article.title}</h3>
-              <p className="text-gray-500 text-sm">{article.desc}</p>
+              <h3 className="font-bold text-slate-800 mt-3 mb-1 group-hover:text-pink-600 transition-colors">{article.title}</h3>
+              <p className="text-slate-500 text-sm">{article.desc}</p>
             </Link>
           ))}
         </div>
@@ -172,14 +174,14 @@ export default function ResourcesPage() {
 
       {/* CTA Section */}
       <section className="py-16 px-4 max-w-4xl mx-auto text-center">
-        <div className="glass-card p-8">
-          <h3 className="text-2xl font-bold text-white mb-4">Ready to Start Practising?</h3>
-          <p className="text-gray-400 mb-6">
+        <div className="bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl p-8 text-white">
+          <h3 className="text-2xl font-bold mb-4">Ready to Start Practising?</h3>
+          <p className="text-white/90 mb-6">
             Put this knowledge into action with our gamified 11+ practice platform.
           </p>
           <Link 
             href="/login"
-            className="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white px-8 py-4 rounded-xl font-bold hover:opacity-90 transition-opacity"
+            className="inline-block bg-white text-pink-600 px-8 py-4 rounded-xl font-bold hover:bg-slate-50 transition-colors"
           >
             Try Free Today ✨
           </Link>
@@ -187,20 +189,20 @@ export default function ResourcesPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-8 px-4 mt-8">
+      <footer className="border-t border-slate-200 py-8 px-4 mt-8 bg-white">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-xl">⭐</span>
-            <span className="font-display gradient-text">11+ QUEST</span>
+            <span className="font-display bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">11+ QUEST</span>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500">
-            <Link href="/about" className="hover:text-white transition-colors">About</Link>
-            <Link href="/resources" className="hover:text-white transition-colors">Resources</Link>
-            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-            <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-slate-500">
+            <Link href="/about" className="hover:text-slate-800 transition-colors">About</Link>
+            <Link href="/resources" className="hover:text-slate-800 transition-colors">Resources</Link>
+            <Link href="/pricing" className="hover:text-slate-800 transition-colors">Pricing</Link>
+            <Link href="/privacy" className="hover:text-slate-800 transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-slate-800 transition-colors">Terms</Link>
           </div>
-          <p className="text-gray-500 text-sm">© 2025 11+ Quest</p>
+          <p className="text-slate-500 text-sm">© 2025 11+ Quest</p>
         </div>
       </footer>
     </main>
