@@ -14,20 +14,33 @@ type Props = {
 export default function Navbar({ user }: Props) {
   const [showMenu, setShowMenu] = useState(false)
   const [isPro, setIsPro] = useState(false)
+  const [childName, setChildName] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
 
   useEffect(() => {
-    const checkSubscription = async () => {
-      const { data } = await supabase
+    const loadData = async () => {
+      // Check subscription
+      const { data: stats } = await supabase
         .from('user_stats')
         .select('subscription_status')
         .eq('user_id', user.id)
         .single()
       
-      setIsPro(data?.subscription_status === 'active')
+      setIsPro(stats?.subscription_status === 'active')
+
+      // Get child name for display
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('child_name')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (profile?.child_name) {
+        setChildName(profile.child_name)
+      }
     }
-    checkSubscription()
+    loadData()
   }, [user.id, supabase])
 
   const handleSignOut = async () => {
@@ -35,7 +48,7 @@ export default function Navbar({ user }: Props) {
     router.push('/')
   }
 
-  const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Player'
+  const displayName = childName || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Player'
   const avatarUrl = user.user_metadata?.avatar_url
 
   return (
@@ -91,7 +104,7 @@ export default function Navbar({ user }: Props) {
                 className="rounded-full"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
                 {displayName[0].toUpperCase()}
               </div>
             )}
@@ -103,19 +116,27 @@ export default function Navbar({ user }: Props) {
               <div className="px-3 py-2 text-sm text-gray-400 border-b border-white/10">
                 {user.email}
               </div>
+              <Link
+                href="/settings"
+                className="block px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
+                onClick={() => setShowMenu(false)}
+              >
+                ⚙️ Settings
+              </Link>
               {isPro && (
                 <Link
                   href="/pricing"
                   className="block px-3 py-2 text-sm text-purple-400 hover:bg-white/5 rounded-lg transition-colors"
+                  onClick={() => setShowMenu(false)}
                 >
-                  Manage Subscription
+                  💳 Manage Subscription
                 </Link>
               )}
               <button
                 onClick={handleSignOut}
                 className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-white/5 rounded-lg transition-colors"
               >
-                Sign Out
+                🚪 Sign Out
               </button>
             </div>
           )}

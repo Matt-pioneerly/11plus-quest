@@ -32,69 +32,114 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      {/* Navigation */}
-      <nav className="flex items-center justify-between p-4 max-w-6xl mx-auto">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">⭐</span>
-          <span className="font-display text-xl gradient-text">11+ QUEST</span>
+      {/* Hero Section with Lighter Gradient */}
+      <div className="relative overflow-hidden">
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-800 via-slate-900 to-[#0f0a1f]" />
+        
+        {/* Animated Stars */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(50)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white animate-twinkle"
+              style={{
+                width: Math.random() * 3 + 1 + 'px',
+                height: Math.random() * 3 + 1 + 'px',
+                top: Math.random() * 100 + '%',
+                left: Math.random() * 100 + '%',
+                animationDelay: Math.random() * 3 + 's',
+                opacity: Math.random() * 0.7 + 0.3,
+              }}
+            />
+          ))}
         </div>
-        <div className="flex items-center gap-6">
-          <Link href="/about" className="text-gray-400 hover:text-white transition-colors text-sm">About</Link>
-          <Link href="/resources" className="text-gray-400 hover:text-white transition-colors text-sm">Resources</Link>
-          <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors text-sm">Pricing</Link>
-          <Link href="/login" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
-            Start Free
-          </Link>
-        </div>
-      </nav>
 
-      {/* Hero Section */}
-      <section className="text-center py-16 px-4 max-w-4xl mx-auto">
-        <div className="animate-slide-in">
-          {/* Mascots */}
-          <div className="flex justify-center gap-4 mb-8">
-            {['🦊', '🐱', '🐰', '🐻'].map((mascot, i) => (
-              <span
-                key={i}
-                className="text-5xl animate-float"
-                style={{ animationDelay: `${i * 0.2}s` }}
+        {/* Navigation */}
+        <nav className="relative z-10 flex items-center justify-between p-4 md:p-6 max-w-6xl mx-auto">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">⭐</span>
+            <span className="font-display text-xl gradient-text">11+ QUEST</span>
+          </div>
+          
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link href="/about" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">About</Link>
+            <Link href="/resources" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Resources</Link>
+            <Link href="/pricing" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Pricing</Link>
+            <Link 
+              href="/login" 
+              className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-white/20 transition-all"
+            >
+              Log In
+            </Link>
+            <Link 
+              href="/login" 
+              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-pink-500/25"
+            >
+              Start Free
+            </Link>
+          </div>
+
+          {/* Mobile Nav */}
+          <div className="flex md:hidden items-center gap-3">
+            <Link 
+              href="/login" 
+              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+            >
+              Start Free
+            </Link>
+          </div>
+        </nav>
+
+        {/* Hero Content */}
+        <section className="relative z-10 text-center py-16 md:py-24 px-4 max-w-4xl mx-auto">
+          <div className="animate-slide-in">
+            {/* Mascots */}
+            <div className="flex justify-center gap-4 mb-8">
+              {['🦊', '🐱', '🐰', '🐻'].map((mascot, i) => (
+                <span
+                  key={i}
+                  className="text-4xl md:text-5xl animate-float"
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                >
+                  {mascot}
+                </span>
+              ))}
+            </div>
+
+            <h1 className="font-display text-4xl md:text-6xl text-white mb-4">
+              11+ Exam Practice
+            </h1>
+            <h2 className="font-display text-2xl md:text-3xl gradient-text mb-4">
+              That Kids Actually Enjoy! 🎮
+            </h2>
+            <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-8">
+              Gamified learning with XP, streaks, and leaderboards. 
+              Covering Verbal, Non-Verbal, English & Maths - all matched to GL Assessment format.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Link 
+                href="/login"
+                className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-pink-500/30"
               >
-                {mascot}
-              </span>
-            ))}
+                Start Free - No Card Needed ✨
+              </Link>
+              <Link 
+                href="/about"
+                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition-all"
+              >
+                Learn More
+              </Link>
+            </div>
+
+            <p className="text-gray-400 text-sm">
+              ✓ 5 free questions daily &nbsp;•&nbsp; ✓ No credit card required &nbsp;•&nbsp; ✓ Cancel anytime
+            </p>
           </div>
-
-          <h1 className="font-display text-4xl md:text-6xl gradient-text mb-4">
-            11+ Exam Practice
-          </h1>
-          <h2 className="font-display text-2xl md:text-3xl text-white mb-4">
-            That Kids Actually Enjoy! 🎮
-          </h2>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-            Gamified learning with XP, streaks, and leaderboards. 
-            Covering Verbal, Non-Verbal, English & Maths - all matched to GL Assessment format.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link 
-              href="/login"
-              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-pink-500/30"
-            >
-              Start Free - No Card Needed ✨
-            </Link>
-            <Link 
-              href="/about"
-              className="glass-card px-8 py-4 font-bold text-lg hover:bg-white/10 transition-colors"
-            >
-              Learn More
-            </Link>
-          </div>
-
-          <p className="text-gray-500 text-sm">
-            ✓ 5 free questions daily &nbsp;•&nbsp; ✓ No credit card required &nbsp;•&nbsp; ✓ Cancel anytime
-          </p>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* Features Section */}
       <section className="py-16 px-4 max-w-6xl mx-auto">
@@ -121,9 +166,9 @@ export default function Home() {
           
           <div className="glass-card p-6 text-center">
             <div className="text-4xl mb-4">📊</div>
-            <h4 className="text-lg font-bold text-white mb-2">Track Progress</h4>
+            <h4 className="text-lg font-bold text-white mb-2">Parent Reports</h4>
             <p className="text-gray-400 text-sm">
-              See exactly where your child excels and where they need practice. No more guessing.
+              Get daily or weekly email reports showing progress, strengths, and areas to focus on.
             </p>
           </div>
         </div>
@@ -169,7 +214,7 @@ export default function Home() {
             </div>
             <div className="text-left">
               <p className="text-gray-300 italic mb-3">
-                "Finally, 11+ prep that doesn't feel like a chore. The mock exams are brilliant for timing practice."
+                "The weekly reports are brilliant - I can see exactly where she needs more practice."
               </p>
               <p className="text-purple-400 text-sm font-semibold">— James, Dad of twins</p>
             </div>
