@@ -47,7 +47,7 @@ export default function ResourcesPage() {
         </Link>
         <div className="hidden md:flex items-center gap-6">
           <Link href="/about" className="text-gray-400 hover:text-white transition-colors text-sm">About</Link>
-          <Link href="/resources" className="text-white font-semibold text-sm">Resources</Link>
+          <Link href="/resources" className="text-white font-semibold text-sm">11+ Resources for Parents</Link>
           <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors text-sm">Pricing</Link>
           <Link href="/login" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
             Start Free
