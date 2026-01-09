@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, Suspense } from 'react'
 import { User } from '@supabase/supabase-js'
+import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 
 function PricingContent() {
@@ -17,28 +18,31 @@ function PricingContent() {
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/')
-        return
-      }
       setUser(user)
 
-      const { data } = await supabase
-        .from('user_stats')
-        .select('subscription_status')
-        .eq('user_id', user.id)
-        .single()
-      
-      if (data?.subscription_status) {
-        setSubscriptionStatus(data.subscription_status)
+      if (user) {
+        const { data } = await supabase
+          .from('user_stats')
+          .select('subscription_status')
+          .eq('user_id', user.id)
+          .single()
+        
+        if (data?.subscription_status) {
+          setSubscriptionStatus(data.subscription_status)
+        }
       }
       
       setLoading(false)
     }
     getUser()
-  }, [router, supabase])
+  }, [supabase])
 
   const handleCheckout = async () => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    
     setCheckoutLoading(true)
     try {
       const response = await fetch('/api/stripe/checkout', {
@@ -70,7 +74,7 @@ function PricingContent() {
     }
   }
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-4xl animate-float">💎</div>
@@ -80,7 +84,24 @@ function PricingContent() {
 
   return (
     <div className="min-h-screen">
-      <Navbar user={user} />
+      {user ? (
+        <Navbar user={user} />
+      ) : (
+        <nav className="flex items-center justify-between p-4 md:p-6 max-w-6xl mx-auto">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="text-2xl">⭐</span>
+            <span className="font-display text-xl gradient-text">11+ QUEST</span>
+          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/about" className="text-gray-300 hover:text-white transition-colors text-sm">About</Link>
+            <Link href="/resources" className="text-gray-300 hover:text-white transition-colors text-sm">11+ Resources for Parents</Link>
+            <Link href="/pricing" className="text-pink-400 font-semibold text-sm">Pricing</Link>
+            <Link href="/login" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+              Start Free
+            </Link>
+          </div>
+        </nav>
+      )}
       
       <div className="p-4 max-w-4xl mx-auto">
         <div className="text-center mb-8">
@@ -110,12 +131,21 @@ function PricingContent() {
                 <span className="text-red-400">✗</span> All difficulty levels
               </li>
             </ul>
-            <button 
-              onClick={() => router.push('/quiz')}
-              className="w-full py-3 rounded-xl border border-white/20 text-gray-400 hover:bg-white/5 transition-colors"
-            >
-              Current Plan
-            </button>
+            {user ? (
+              <button 
+                onClick={() => router.push('/quiz')}
+                className="w-full py-3 rounded-xl border border-white/20 text-gray-400 hover:bg-white/5 transition-colors"
+              >
+                Current Plan
+              </button>
+            ) : (
+              <Link 
+                href="/login"
+                className="block w-full py-3 rounded-xl border border-white/20 text-gray-400 hover:bg-white/5 transition-colors text-center"
+              >
+                Get Started Free
+              </Link>
+            )}
           </div>
 
           {/* Pro Tier */}
@@ -162,9 +192,30 @@ function PricingContent() {
                 disabled={checkoutLoading}
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {checkoutLoading ? 'Loading...' : 'Upgrade Now 🚀'}
+                {checkoutLoading ? 'Loading...' : user ? 'Upgrade Now 🚀' : 'Start Free Trial 🚀'}
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Fair Access */}
+        <div className="glass-card p-6 mb-8 border border-purple-500/30 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+          <div className="flex items-start gap-4">
+            <div className="text-3xl">💜</div>
+            <div>
+              <h3 className="font-bold text-white text-lg mb-2">Fair Access for All Families</h3>
+              <p className="text-gray-300 mb-3">
+                We believe every child deserves the chance to succeed, regardless of their family's financial situation. 
+                Education should never be limited by what you can afford.
+              </p>
+              <p className="text-gray-400 text-sm">
+                If the subscription cost is a barrier for your family, please{' '}
+                <a href="mailto:hello@11plusquest.com" className="text-pink-400 hover:text-pink-300 underline">
+                  get in touch
+                </a>{' '}
+                and we will arrange free Pro access. No questions asked, no proof required.
+              </p>
+            </div>
           </div>
         </div>
 
