@@ -13,8 +13,8 @@ const regions = [
     name: 'Warwickshire', 
     schools: 5, 
     examBoard: 'GL',
-    desc: 'Including King Edward VI schools in Birmingham consortium',
-    popular: ['King Edward VI Five Ways', 'King Edward VI Camp Hill Boys', 'King Edward VI Handsworth']
+    desc: 'Grammar schools in Stratford-upon-Avon and Rugby areas',
+    popular: ['King Edward VI Stratford', 'Alcester Grammar', 'Lawrence Sheriff Rugby']
   },
   { 
     slug: 'birmingham', 
