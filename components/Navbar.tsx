@@ -77,6 +77,14 @@ export default function Navbar({ user }: Props) {
           )}
 
           <Link 
+            href="/resources" 
+            className="text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 text-sm"
+          >
+            <span>📚</span>
+            <span>Resources</span>
+          </Link>
+
+          <Link 
             href="/leaderboard" 
             className="text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 text-sm"
           >
@@ -219,6 +227,14 @@ export default function Navbar({ user }: Props) {
             >
               <span className="text-xl">🎮</span>
               <span>Practice</span>
+            </Link>
+            <Link
+              href="/resources"
+              className="flex items-center gap-3 px-3 py-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              <span className="text-xl">📚</span>
+              <span>11+ Resources for Parents</span>
             </Link>
             <Link
               href="/leaderboard"

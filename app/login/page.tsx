@@ -10,9 +10,11 @@ export default function LoginPage() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+  const [mode, setMode] = useState<'login' | 'signup' | 'magic'>('login')
   const router = useRouter()
   const supabase = createClient()
 
@@ -28,6 +30,42 @@ export default function LoginPage() {
     }
     getUser()
   }, [router, supabase.auth])
+
+  const handleEmailPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSending(true)
+    setError('')
+    
+    if (mode === 'signup') {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      
+      if (error) {
+        setError(error.message)
+        setSending(false)
+      } else {
+        setSent(true)
+        setSending(false)
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      
+      if (error) {
+        setError(error.message)
+        setSending(false)
+      } else {
+        router.push('/quiz')
+      }
+    }
+  }
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,7 +110,7 @@ export default function LoginPage() {
             ★ 11+ QUEST ★
           </h1>
           <p className="text-purple-400 text-lg tracking-widest">
-            레벨업! LEVEL UP YOUR BRAIN! 🚀
+            LEVEL UP YOUR BRAIN! 🚀
           </p>
         </div>
 
@@ -94,13 +132,13 @@ export default function LoginPage() {
           {!sent ? (
             <>
               <h2 className="text-2xl font-bold text-white mb-4">
-                Ready to Begin? 준비됐어요?
+                {mode === 'signup' ? 'Create Account' : mode === 'magic' ? 'Magic Link Login' : 'Welcome Back!'}
               </h2>
               <p className="text-gray-400 mb-6">
-                Enter your email to get a magic login link!
+                {mode === 'signup' ? 'Sign up to start your 11+ journey' : mode === 'magic' ? 'Enter your email to get a magic login link' : 'Sign in to continue your progress'}
               </p>
 
-              <form onSubmit={handleMagicLink}>
+              <form onSubmit={mode === 'magic' ? handleMagicLink : handleEmailPassword}>
                 <input
                   type="email"
                   value={email}
@@ -109,6 +147,18 @@ export default function LoginPage() {
                   required
                   className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-500 mb-4 focus:outline-none focus:border-pink-500"
                 />
+                
+                {mode !== 'magic' && (
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password (min 6 characters)"
+                    required
+                    minLength={6}
+                    className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-500 mb-4 focus:outline-none focus:border-pink-500"
+                  />
+                )}
                 
                 {error && (
                   <p className="text-red-400 text-sm mb-4">{error}</p>
@@ -119,26 +169,57 @@ export default function LoginPage() {
                   disabled={sending}
                   className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold py-3 px-6 rounded-xl hover:opacity-90 transition-all disabled:opacity-50"
                 >
-                  {sending ? 'Sending...' : '✨ Send Magic Link'}
+                  {sending ? 'Please wait...' : mode === 'signup' ? '✨ Create Account' : mode === 'magic' ? '✨ Send Magic Link' : '✨ Sign In'}
                 </button>
               </form>
 
-              <p className="text-gray-500 text-sm mt-4">
-                No password needed - check your email!
-              </p>
+              <div className="mt-6 space-y-2">
+                {mode === 'login' && (
+                  <>
+                    <p className="text-gray-500 text-sm">
+                      Don't have an account?{' '}
+                      <button onClick={() => { setMode('signup'); setError(''); }} className="text-pink-400 hover:text-pink-300">
+                        Sign up
+                      </button>
+                    </p>
+                    <p className="text-gray-500 text-sm">
+                      Prefer passwordless?{' '}
+                      <button onClick={() => { setMode('magic'); setError(''); }} className="text-purple-400 hover:text-purple-300">
+                        Use magic link
+                      </button>
+                    </p>
+                  </>
+                )}
+                {mode === 'signup' && (
+                  <p className="text-gray-500 text-sm">
+                    Already have an account?{' '}
+                    <button onClick={() => { setMode('login'); setError(''); }} className="text-pink-400 hover:text-pink-300">
+                      Sign in
+                    </button>
+                  </p>
+                )}
+                {mode === 'magic' && (
+                  <p className="text-gray-500 text-sm">
+                    Prefer password?{' '}
+                    <button onClick={() => { setMode('login'); setError(''); }} className="text-pink-400 hover:text-pink-300">
+                      Sign in with password
+                    </button>
+                  </p>
+                )}
+              </div>
             </>
           ) : (
             <div className="text-center">
               <div className="text-5xl mb-4">📧</div>
               <h2 className="text-2xl font-bold text-white mb-2">Check your email!</h2>
               <p className="text-gray-400 mb-4">
-                We sent a magic link to <span className="text-pink-400">{email}</span>
+                We sent a {mode === 'signup' ? 'confirmation' : 'magic'} link to <span className="text-pink-400">{email}</span>
               </p>
               <p className="text-gray-500 text-sm">
-                Click the link in the email to sign in. 화이팅!
+                Click the link in the email to {mode === 'signup' ? 'verify your account' : 'sign in'}.
               </p>
               <button
-                onClick={() => setSent(false)}
+                onClick={() => { setSent(false); setError(''); }}
                 className="mt-4 text-purple-400 hover:text-purple-300"
               >
                 Use a different email
