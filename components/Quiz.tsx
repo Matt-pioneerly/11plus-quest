@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { questionBank, subjectInfo, levelInfo, encouragements, shuffleArray, Question, Subject, Level } from '@/lib/questions'
+import { getAllEllasQuestions, categories as ellasCategories, EllasQuestion } from '@/lib/ellas-questions'
 import QuickMockModal from './QuickMockModal'
 
 type Props = {
   user: User | null
 }
 
-type View = 'home' | 'levels' | 'quiz' | 'results'
+type View = 'home' | 'levels' | 'quiz' | 'results' | 'ellas-categories' | 'ellas-quiz'
 type Particle = { id: number; x: number; y: number; emoji: string; angle: number; velocity: number }
 type FloatingEmoji = { id: number; emoji: string; x: number }
 
@@ -29,6 +30,14 @@ export default function Quiz({ user }: Props) {
   const [mockExamTime, setMockExamTime] = useState(0)
   const [mockExamActive, setMockExamActive] = useState(false)
   const [mockTimeLimit, setMockTimeLimit] = useState(0)
+  
+  // Ella's Questions state
+  const [ellasQuestions, setEllasQuestions] = useState<EllasQuestion[]>([])
+  const [currentEllasCategory, setCurrentEllasCategory] = useState<string | null>(null)
+  const [ellasCurrentIndex, setEllasCurrentIndex] = useState(0)
+  const [ellasSelectedAnswer, setEllasSelectedAnswer] = useState<number | null>(null)
+  const [ellasShowResult, setEllasShowResult] = useState(false)
+  const [ellasScore, setEllasScore] = useState({ correct: 0, total: 0 })
   
   const [streak, setStreak] = useState(0)
   const [totalXP, setTotalXP] = useState(0)
@@ -51,8 +60,8 @@ export default function Quiz({ user }: Props) {
   })
 
   useEffect(() => {
-    if (!user) return
     const loadStats = async () => {
+      if (!user) return
       const { data } = await supabase
         .from('user_stats')
         .select('*')
@@ -206,6 +215,114 @@ export default function Quiz({ user }: Props) {
     setMascotMood('focused')
   }
 
+  // Ella's Practice functions
+  const startEllasPractice = () => {
+    setCurrentView('ellas-categories')
+    setAnimation('slideIn')
+  }
+
+  const startEllasCategory = (category: string) => {
+    const allQuestions = getAllEllasQuestions()
+    const categoryQuestions = allQuestions.filter(q => q.category === category)
+    const shuffled = shuffleArray(categoryQuestions).slice(0, 10)
+    
+    setEllasQuestions(shuffled)
+    setCurrentEllasCategory(category)
+    setEllasCurrentIndex(0)
+    setEllasSelectedAnswer(null)
+    setEllasShowResult(false)
+    setEllasScore({ correct: 0, total: 0 })
+    setStreak(0)
+    setCurrentView('ellas-quiz')
+    setAnimation('slideIn')
+    setMascotMood('happy')
+  }
+
+  const startEllasMix = () => {
+    const allQuestions = getAllEllasQuestions()
+    const shuffled = shuffleArray(allQuestions).slice(0, 15)
+    
+    setEllasQuestions(shuffled)
+    setCurrentEllasCategory('Mixed Practice')
+    setEllasCurrentIndex(0)
+    setEllasSelectedAnswer(null)
+    setEllasShowResult(false)
+    setEllasScore({ correct: 0, total: 0 })
+    setStreak(0)
+    setCurrentView('ellas-quiz')
+    setAnimation('slideIn')
+    setMascotMood('happy')
+  }
+
+  const handleEllasAnswerSelect = (index: number, e?: React.MouseEvent) => {
+    if (ellasShowResult) return
+    setEllasSelectedAnswer(index)
+    if (e) {
+      createParticles(e.clientX, e.clientY, 'star')
+    }
+  }
+
+  const checkEllasAnswer = () => {
+    if (ellasSelectedAnswer === null) return
+    
+    const isCorrect = ellasSelectedAnswer === ellasQuestions[ellasCurrentIndex].answer
+    setEllasShowResult(true)
+    
+    if (isCorrect) {
+      const newStreak = streak + 1
+      setStreak(newStreak)
+      setMascotMood('excited')
+      
+      const baseXP = ellasQuestions[ellasCurrentIndex].difficulty === 'hard' ? 25 : ellasQuestions[ellasCurrentIndex].difficulty === 'medium' ? 15 : 10
+      const streakBonus = Math.min(newStreak - 1, 5) * 5
+      const xpGained = baseXP + streakBonus
+      
+      setTotalXP(prev => prev + xpGained)
+      setShowXPGain({ amount: xpGained, streak: newStreak > 1 })
+      setTimeout(() => setShowXPGain(null), 1500)
+      
+      if (newStreak >= 2) {
+        setShowStreakPopup(true)
+        setTimeout(() => setShowStreakPopup(false), 1200)
+      }
+      
+      createFloatingEmoji(['⭐', '✨', '🌟', '💫'][Math.floor(Math.random() * 4)])
+      if (newStreak >= 3) createFloatingEmoji('🔥')
+      if (newStreak >= 5) createFloatingEmoji('⚡')
+      
+      setAnimation('correct')
+    } else {
+      setStreak(0)
+      setMascotMood('sad')
+      setAnimation('incorrect')
+      setTimeout(() => setMascotMood('encouraging'), 1500)
+    }
+    
+    setEllasScore(prev => ({
+      correct: prev.correct + (isCorrect ? 1 : 0),
+      total: prev.total + 1
+    }))
+  }
+
+  const nextEllasQuestion = () => {
+    if (ellasCurrentIndex < ellasQuestions.length - 1) {
+      setEllasCurrentIndex(ellasCurrentIndex + 1)
+      setEllasSelectedAnswer(null)
+      setEllasShowResult(false)
+      setAnimation('slideIn')
+      setMascotMood('happy')
+    } else {
+      const percentage = (ellasScore.correct / ellasScore.total) * 100
+      
+      if (percentage >= 80) {
+        setShowCelebration(true)
+        createParticles(window.innerWidth / 2, window.innerHeight / 2, 'confetti')
+      }
+      
+      setCurrentView('results')
+    }
+  }
+
   const handleAnswerSelect = (index: number, e?: React.MouseEvent) => {
     if (showResult) return
     setSelectedAnswer(index)
@@ -257,7 +374,7 @@ export default function Quiz({ user }: Props) {
   }
 
   const saveScore = async () => {
-    if (!user) return // Skip saving for guests
+    if (!user) return
     
     const percentage = Math.round((score.correct / score.total) * 100)
     const xpEarned = score.correct * (currentLevel === 'hard' ? 30 : currentLevel === 'medium' ? 20 : 15)
@@ -329,6 +446,7 @@ export default function Quiz({ user }: Props) {
     setCurrentView('home')
     setCurrentSubject(null)
     setCurrentLevel(null)
+    setCurrentEllasCategory(null)
     setMockExamActive(false)
     setShowCelebration(false)
     setAnimation('')
@@ -340,6 +458,7 @@ export default function Quiz({ user }: Props) {
   }
 
   const currentQuestion = shuffledQuestions[currentQuestionIndex]
+  const currentEllasQuestion = ellasQuestions[ellasCurrentIndex]
   const timeRemaining = mockTimeLimit > 0 ? mockTimeLimit - mockExamTime : null
   const timeWarning = timeRemaining !== null && timeRemaining < 120
 
@@ -349,6 +468,23 @@ export default function Quiz({ user }: Props) {
 
   const isLevel = (l: string | null): l is Level => {
     return l === 'easy' || l === 'medium' || l === 'hard'
+  }
+
+  // Category emoji mapping
+  const categoryEmojis: Record<string, string> = {
+    'Letter Sequences': '🔤',
+    'Spelling': '📝',
+    'Maths - Arithmetic': '➕',
+    'Maths - Fractions': '🥧',
+    'Maths - Word Problems': '📖',
+    'Maths - Sequences': '🔢',
+    'Verbal - Synonyms': '🔄',
+    'Verbal - Antonyms': '↔️',
+    'Verbal - Word Codes': '🔐',
+    'Verbal - Number Codes': '🔢',
+    'Verbal - Analogies': '🔗',
+    'Verbal - Odd One Out': '👀',
+    'Verbal - Compound Words': '🧩',
   }
 
   return (
@@ -436,6 +572,25 @@ export default function Quiz({ user }: Props) {
             )}
           </div>
 
+          {/* Ella's Practice - Special Section */}
+          <div className="mb-10">
+            <h3 className="text-pink-300 mb-4 text-sm font-semibold">🌸 Ella&apos;s Practice Zone</h3>
+            <button
+              onClick={startEllasPractice}
+              className="glass-card w-full p-6 text-left border-2 border-pink-500/40 hover:border-pink-500/60 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="text-5xl animate-float">🦋</div>
+                <div className="flex-1">
+                  <h4 className="font-display text-lg text-white">ELLA&apos;S QUESTIONS</h4>
+                  <p className="text-pink-400 text-sm">420 questions across 13 categories!</p>
+                  <p className="text-gray-500 text-xs mt-1">Letter sequences, spelling, maths, verbal reasoning</p>
+                </div>
+                <div className="text-pink-400 group-hover:translate-x-1 transition-transform">→</div>
+              </div>
+            </button>
+          </div>
+
           {/* Practice by Subject */}
           <h3 className="text-purple-300 mb-4 text-sm font-semibold">📚 Practice by Subject</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
@@ -496,6 +651,176 @@ export default function Quiz({ user }: Props) {
             <div className="text-center">
               <div className="text-3xl font-bold text-pink-400">{achievements.perfectScores}</div>
               <div className="text-xs text-gray-500 mt-1">Perfect</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ELLA'S CATEGORIES VIEW */}
+      {currentView === 'ellas-categories' && (
+        <div className="animate-slide-in">
+          <button onClick={goHome} className="glass-card px-4 py-2 mb-4 text-sm">← Back</button>
+          
+          <div className="glass-card p-6 text-center mb-6 border-2 border-pink-500/30">
+            <div className="text-6xl mb-2 animate-float">🦋</div>
+            <h2 className="font-display text-2xl text-pink-400">Ella&apos;s Practice</h2>
+            <p className="text-gray-500 mt-1">Choose a category to practice!</p>
+          </div>
+
+          {/* Quick Mix Option */}
+          <button
+            onClick={startEllasMix}
+            className="glass-card w-full p-4 mb-4 text-left border-2 border-purple-500/40 hover:border-purple-500/60 transition-all"
+          >
+            <div className="flex items-center gap-4">
+              <span className="text-3xl">🎲</span>
+              <div>
+                <h4 className="font-semibold text-white">Mixed Practice</h4>
+                <p className="text-purple-400 text-sm">15 random questions from all categories</p>
+              </div>
+            </div>
+          </button>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {ellasCategories.map((category) => (
+              <button
+                key={category}
+                onClick={() => startEllasCategory(category)}
+                className="glass-card p-4 text-left hover:scale-[1.02] transition-transform"
+                style={{ borderLeft: '4px solid #ec4899' }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{categoryEmojis[category] || '📝'}</span>
+                  <div>
+                    <h4 className="font-semibold text-white text-sm">{category}</h4>
+                    <p className="text-gray-500 text-xs">10 questions</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ELLA'S QUIZ VIEW */}
+      {currentView === 'ellas-quiz' && currentEllasQuestion && (
+        <div className={animation === 'slideIn' ? 'animate-slide-in' : ''}>
+          <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+            <button onClick={goHome} className="glass-card px-3 py-2 text-sm">✕ Exit</button>
+            
+            <div className="glass-card px-3 py-2 text-pink-400 text-sm font-semibold">
+              🦋 {currentEllasCategory}
+            </div>
+
+            {streak >= 2 && (
+              <div className="glass-card px-3 py-2 flex items-center gap-2 border-yellow-500/30 animate-pulse">
+                <span>🔥</span>
+                <span className="text-yellow-400 font-bold">{streak}x</span>
+              </div>
+            )}
+
+            <div className="glass-card px-3 py-2 text-emerald-400 font-bold text-sm">
+              ✓ {ellasScore.correct}/{ellasScore.total}
+            </div>
+          </div>
+
+          <div className="h-1.5 bg-white/10 rounded-full mb-5 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-pink-400 to-purple-400 rounded-full transition-all duration-500"
+              style={{ width: `${((ellasCurrentIndex + 1) / ellasQuestions.length) * 100}%` }}
+            />
+          </div>
+
+          <div className={`glass-card p-6 ${animation === 'correct' ? 'animate-correct' : animation === 'incorrect' ? 'animate-shake' : ''}`}>
+            <div className="flex gap-2 mb-3 flex-wrap">
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                currentEllasQuestion.difficulty === 'hard' ? 'bg-red-500/20 text-red-400' :
+                currentEllasQuestion.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                'bg-green-500/20 text-green-400'
+              }`}>
+                {currentEllasQuestion.difficulty}
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-pink-500/20 text-pink-400">
+                {currentEllasQuestion.type}
+              </span>
+            </div>
+
+            <h2 className="text-lg md:text-xl font-semibold text-white mb-5 leading-relaxed">
+              {currentEllasQuestion.question}
+            </h2>
+
+            <div className="space-y-2">
+              {currentEllasQuestion.options.map((option, index) => {
+                const isSelected = ellasSelectedAnswer === index
+                const isCorrect = index === currentEllasQuestion.answer
+                const showCorrect = ellasShowResult && isCorrect
+                const showWrong = ellasShowResult && isSelected && !isCorrect
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={(e) => handleEllasAnswerSelect(index, e)}
+                    disabled={ellasShowResult}
+                    className={`w-full p-4 rounded-xl border-2 text-left flex items-center gap-3 transition-all ${
+                      showCorrect ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400' :
+                      showWrong ? 'bg-red-500/15 border-red-500 text-red-400' :
+                      isSelected ? 'bg-purple-500/15 border-purple-400 text-purple-300' :
+                      'bg-white/5 border-white/10 text-gray-300 hover:border-white/30'
+                    } ${ellasShowResult ? 'cursor-default' : 'cursor-pointer hover:scale-[1.01]'}`}
+                  >
+                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 ${
+                      showCorrect ? 'bg-emerald-500 text-white' :
+                      showWrong ? 'bg-red-500 text-white' :
+                      isSelected ? 'bg-purple-400 text-white' :
+                      'bg-white/10 text-gray-500'
+                    }`}>
+                      {showCorrect ? '✓' : showWrong ? '✗' : String.fromCharCode(65 + index)}
+                    </span>
+                    {option}
+                  </button>
+                )
+              })}
+            </div>
+
+            {ellasShowResult && (
+              <div className={`mt-5 p-4 rounded-xl animate-slide-in ${
+                ellasSelectedAnswer === currentEllasQuestion.answer
+                  ? 'bg-emerald-500/10 border border-emerald-500/30'
+                  : 'bg-red-500/10 border border-red-500/30'
+              }`}>
+                <p className={`font-bold mb-2 ${
+                  ellasSelectedAnswer === currentEllasQuestion.answer ? 'text-emerald-400' : 'text-red-400'
+                }`}>
+                  {ellasSelectedAnswer === currentEllasQuestion.answer
+                    ? encouragements.correct[Math.floor(Math.random() * encouragements.correct.length)]
+                    : encouragements.incorrect[Math.floor(Math.random() * encouragements.incorrect.length)]
+                  }
+                </p>
+                <p className="text-gray-400 text-sm">{currentEllasQuestion.explanation}</p>
+              </div>
+            )}
+
+            <div className="mt-6 text-center">
+              {!ellasShowResult ? (
+                <button
+                  onClick={checkEllasAnswer}
+                  disabled={ellasSelectedAnswer === null}
+                  className={`px-10 py-3 rounded-xl font-bold transition-all ${
+                    ellasSelectedAnswer === null
+                      ? 'bg-white/10 text-gray-600 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg shadow-pink-500/30 hover:scale-105'
+                  }`}
+                >
+                  Check Answer ✓
+                </button>
+              ) : (
+                <button
+                  onClick={nextEllasQuestion}
+                  className="px-10 py-3 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg shadow-pink-500/30 hover:scale-105 animate-pulse"
+                >
+                  {ellasCurrentIndex < ellasQuestions.length - 1 ? 'Next Question →' : 'See Results! 🎉'}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -676,18 +1001,24 @@ export default function Quiz({ user }: Props) {
       {currentView === 'results' && (
         <div className="animate-slide-in text-center">
           <div className="glass-card p-8">
-            <div className={`text-6xl mb-4 ${score.correct / score.total >= 0.8 ? 'animate-mascot-excited' : 'animate-float'}`}>
-              {score.correct / score.total >= 0.9 ? '🏆' :
-               score.correct / score.total >= 0.7 ? '🌟' :
-               score.correct / score.total >= 0.5 ? '💪' : '🌸'}
+            <div className={`text-6xl mb-4 ${(currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.8 ? 'animate-mascot-excited' : 'animate-float'}`}>
+              {(currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.9 ? '🏆' :
+               (currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.7 ? '🌟' :
+               (currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.5 ? '💪' : '🌸'}
             </div>
 
             <h2 className="font-display text-2xl md:text-3xl gradient-text mb-2">
-              {score.correct / score.total >= 0.9 ? 'LEGENDARY! 🔥' :
-               score.correct / score.total >= 0.8 ? 'AMAZING!' :
-               score.correct / score.total >= 0.6 ? 'GREAT JOB!' :
-               score.correct / score.total >= 0.4 ? 'GOOD TRY!' : 'KEEP GOING!'}
+              {(currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.9 ? 'LEGENDARY! 🔥' :
+               (currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.8 ? 'AMAZING!' :
+               (currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.6 ? 'GREAT JOB!' :
+               (currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.4 ? 'GOOD TRY!' : 'KEEP GOING!'}
             </h2>
+
+            {currentEllasCategory && (
+              <p className="text-pink-400 mb-4">
+                🦋 {currentEllasCategory} Complete!
+              </p>
+            )}
 
             {currentSubject === 'mock' && (
               <p className="text-purple-400 mb-4">
@@ -697,27 +1028,36 @@ export default function Quiz({ user }: Props) {
 
             <div className="bg-white/5 rounded-2xl p-6 my-6">
               <div className={`text-5xl font-bold bg-gradient-to-r ${
-                score.correct / score.total >= 0.7 ? 'from-emerald-400 to-cyan-400' : 'from-pink-400 to-purple-400'
+                (currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.7 ? 'from-emerald-400 to-cyan-400' : 'from-pink-400 to-purple-400'
               } bg-clip-text text-transparent`}>
-                {score.correct} / {score.total}
+                {currentEllasCategory ? ellasScore.correct : score.correct} / {currentEllasCategory ? ellasScore.total : score.total}
               </div>
-              <div className="text-gray-500 mt-1">{Math.round((score.correct / score.total) * 100)}% Correct!</div>
+              <div className="text-gray-500 mt-1">{Math.round((currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) * 100)}% Correct!</div>
               
-              <div className={`mt-4 text-2xl ${score.correct / score.total >= 0.7 ? 'animate-rainbow' : ''}`}>
-                {score.correct / score.total >= 0.9 ? '★★★' :
-                 score.correct / score.total >= 0.7 ? '★★☆' :
-                 score.correct / score.total >= 0.5 ? '★☆☆' : '☆☆☆'}
-              </div>
-
-              <div className="mt-4 inline-block bg-yellow-400/15 px-4 py-2 rounded-full">
-                <span className="text-yellow-400 font-bold">
-                  +{score.correct * (currentLevel === 'hard' ? 30 : currentLevel === 'medium' ? 20 : 15)} XP earned!
-                </span>
+              <div className={`mt-4 text-2xl ${(currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.7 ? 'animate-rainbow' : ''}`}>
+                {(currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.9 ? '★★★' :
+                 (currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.7 ? '★★☆' :
+                 (currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.5 ? '★☆☆' : '☆☆☆'}
               </div>
             </div>
 
             <div className="flex gap-3 justify-center flex-wrap">
-              {currentSubject === 'mock' ? (
+              {currentEllasCategory ? (
+                <>
+                  <button
+                    onClick={() => startEllasCategory(currentEllasCategory === 'Mixed Practice' ? ellasCategories[0] : currentEllasCategory)}
+                    className="px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-white"
+                  >
+                    🔄 Try Again
+                  </button>
+                  <button
+                    onClick={startEllasPractice}
+                    className="glass-card px-6 py-3 font-bold"
+                  >
+                    🦋 More Categories
+                  </button>
+                </>
+              ) : currentSubject === 'mock' ? (
                 <button
                   onClick={currentLevel === 'full' ? startFullMockExam : () => setShowQuickMockSelect(true)}
                   className="px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-white"
@@ -742,11 +1082,11 @@ export default function Quiz({ user }: Props) {
           </div>
 
           <div className="glass-card p-4 mt-4 text-gray-400 text-sm">
-            {score.correct / score.total >= 0.9
+            {(currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.9
               ? "Perfect! You're ready for the real exam! 🏆"
-              : score.correct / score.total >= 0.7
+              : (currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.7
               ? "Outstanding! Keep up this momentum! ✨"
-              : score.correct / score.total >= 0.5
+              : (currentEllasCategory ? ellasScore.correct / ellasScore.total : score.correct / score.total) >= 0.5
               ? "You're making great progress! 🌟"
               : "Every question makes you stronger! 💪"
             }
