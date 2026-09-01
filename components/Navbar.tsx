@@ -14,21 +14,12 @@ type Props = {
 export default function Navbar({ user }: Props) {
   const [showMenu, setShowMenu] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
-  const [isPro, setIsPro] = useState(false)
   const [childName, setChildName] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
 
   useEffect(() => {
     const loadData = async () => {
-      const { data: stats } = await supabase
-        .from('user_stats')
-        .select('subscription_status')
-        .eq('user_id', user.id)
-        .single()
-      
-      setIsPro(stats?.subscription_status === 'active')
-
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('child_name')
@@ -61,21 +52,6 @@ export default function Navbar({ user }: Props) {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-4">
-          {!isPro && (
-            <Link 
-              href="/pricing" 
-              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              ⭐ Upgrade
-            </Link>
-          )}
-
-          {isPro && (
-            <span className="text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-1 rounded-full font-bold">
-              PRO
-            </span>
-          )}
-
           <Link 
             href="/resources" 
             className="text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 text-sm"
@@ -141,16 +117,6 @@ export default function Navbar({ user }: Props) {
                     <span className="text-base">⚙️</span>
                     <span>Settings</span>
                   </Link>
-                  {isPro && (
-                    <Link
-                      href="/pricing"
-                      className="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                      onClick={() => setShowMenu(false)}
-                    >
-                      <span className="text-base">💳</span>
-                      <span>Manage Subscription</span>
-                    </Link>
-                  )}
                   <button
                     onClick={handleSignOut}
                     className="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors"
@@ -166,14 +132,6 @@ export default function Navbar({ user }: Props) {
 
         {/* Mobile Menu Button */}
         <div className="flex md:hidden items-center gap-3">
-          {!isPro && (
-            <Link 
-              href="/pricing" 
-              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-bold px-2 py-1 rounded-lg"
-            >
-              ⭐ Pro
-            </Link>
-          )}
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
             className="p-2 text-gray-300 hover:text-white"
@@ -212,11 +170,6 @@ export default function Navbar({ user }: Props) {
               <p className="text-white font-medium">{displayName}</p>
               <p className="text-gray-500 text-xs">{user.email}</p>
             </div>
-            {isPro && (
-              <span className="ml-auto text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-1 rounded-full font-bold">
-                PRO
-              </span>
-            )}
           </div>
           
           <div className="space-y-1">
@@ -260,16 +213,6 @@ export default function Navbar({ user }: Props) {
               <span className="text-xl">⚙️</span>
               <span>Settings</span>
             </Link>
-            {isPro && (
-              <Link
-                href="/pricing"
-                className="flex items-center gap-3 px-3 py-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                onClick={() => setShowMobileMenu(false)}
-              >
-                <span className="text-xl">💳</span>
-                <span>Manage Subscription</span>
-              </Link>
-            )}
             <button
               onClick={handleSignOut}
               className="flex items-center gap-3 w-full px-3 py-3 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors"
