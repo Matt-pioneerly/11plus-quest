@@ -1361,46 +1361,6 @@ export const vrAnalogies: EllasQuestion[] = [
 ]
 
 // ===========================================
-// COMBINE ALL QUESTIONS
-// ===========================================
-
-export const getAllEllasQuestions = (): EllasQuestion[] => {
-  return [
-    ...letterSequenceQuestions,
-    ...spellingQuestions,
-    ...mathsArithmeticQuestions,
-    ...mathsFractionsQuestions,
-    ...mathsWordProblems,
-    ...mathsSequences,
-    ...vrSynonyms,
-    ...vrAntonyms,
-    ...vrWordCodes,
-    ...vrAnalogies,
-  ]
-}
-
-export const getQuestionsByCategory = (category: string): EllasQuestion[] => {
-  return getAllEllasQuestions().filter(q => q.category === category)
-}
-
-export const getQuestionsByDifficulty = (difficulty: 'easy' | 'medium' | 'hard'): EllasQuestion[] => {
-  return getAllEllasQuestions().filter(q => q.difficulty === difficulty)
-}
-
-export const categories = [
-  'Letter Sequences',
-  'Spelling',
-  'Maths - Arithmetic',
-  'Maths - Fractions',
-  'Maths - Word Problems',
-  'Maths - Sequences',
-  'Verbal - Synonyms',
-  'Verbal - Antonyms',
-  'Verbal - Word Codes',
-  'Verbal - Analogies',
-]
-
-// ===========================================
 // VERBAL REASONING - ODD ONE OUT (30 questions)
 // ===========================================
 
