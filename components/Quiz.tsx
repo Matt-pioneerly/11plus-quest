@@ -7,7 +7,7 @@ import { questionBank, subjectInfo, levelInfo, encouragements, shuffleArray, Que
 import QuickMockModal from './QuickMockModal'
 
 type Props = {
-  user: User
+  user: User | null
 }
 
 type View = 'home' | 'levels' | 'quiz' | 'results'
@@ -51,6 +51,7 @@ export default function Quiz({ user }: Props) {
   })
 
   useEffect(() => {
+    if (!user) return
     const loadStats = async () => {
       const { data } = await supabase
         .from('user_stats')
@@ -69,7 +70,7 @@ export default function Quiz({ user }: Props) {
       }
     }
     loadStats()
-  }, [user.id, supabase])
+  }, [user, supabase])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -256,6 +257,8 @@ export default function Quiz({ user }: Props) {
   }
 
   const saveScore = async () => {
+    if (!user) return // Skip saving for guests
+    
     const percentage = Math.round((score.correct / score.total) * 100)
     const xpEarned = score.correct * (currentLevel === 'hard' ? 30 : currentLevel === 'medium' ? 20 : 15)
     
@@ -428,6 +431,9 @@ export default function Quiz({ user }: Props) {
                 <span className="text-emerald-400 font-bold">{achievements.mockExams} Mocks</span>
               </div>
             </div>
+            {!user && (
+              <p className="text-gray-500 text-sm">Sign in to save your progress!</p>
+            )}
           </div>
 
           {/* Practice by Subject */}
