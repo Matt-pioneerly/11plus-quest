@@ -1,35 +1,8 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 export default function Home() {
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const supabase = createClient()
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        router.push('/quiz')
-      } else {
-        setLoading(false)
-      }
-    }
-    checkUser()
-  }, [router, supabase.auth])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-4xl animate-float">🦊</div>
-      </div>
-    )
-  }
-
   return (
     <main className="min-h-screen">
       {/* Hero Section with Lighter Gradient */}
@@ -66,28 +39,27 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-8">
             <Link href="/about" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">About</Link>
             <Link href="/resources" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">11+ Resources for Parents</Link>
-            <Link href="/pricing" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Pricing</Link>
             <Link 
               href="/login" 
-              className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-white/20 transition-all"
+              className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
             >
-              Log In
+              Sign in to save progress
             </Link>
             <Link 
-              href="/login" 
+              href="/quiz" 
               className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-pink-500/25"
             >
-              Start Free
+              Start Practising
             </Link>
           </div>
 
           {/* Mobile Nav */}
           <div className="flex md:hidden items-center gap-3">
             <Link 
-              href="/login" 
+              href="/quiz" 
               className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold"
             >
-              Start Free
+              Start Practising
             </Link>
           </div>
         </nav>
@@ -121,10 +93,10 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link 
-                href="/login"
+                href="/quiz"
                 className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-pink-500/30"
               >
-                Start Free - No Card Needed ✨
+                Start Practising Now ✨
               </Link>
               <Link 
                 href="/about"
@@ -135,7 +107,7 @@ export default function Home() {
             </div>
 
             <p className="text-gray-400 text-sm">
-              ✓ 5 free questions daily &nbsp;•&nbsp; ✓ No credit card required &nbsp;•&nbsp; ✓ Cancel anytime
+              ✓ Completely free &nbsp;•&nbsp; ✓ No sign-up needed &nbsp;•&nbsp; ✓ No credit card
             </p>
           </div>
         </section>
@@ -231,10 +203,10 @@ export default function Home() {
           Join thousands of students preparing for their 11+ exams the fun way.
         </p>
         <Link 
-          href="/login"
+          href="/quiz"
           className="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-pink-500/30"
         >
-          Start Free Today ✨
+          Start Practising ✨
         </Link>
       </section>
 
@@ -248,7 +220,6 @@ export default function Home() {
           <div className="flex gap-6 text-sm text-gray-500">
             <Link href="/about" className="hover:text-white transition-colors">About</Link>
             <Link href="/resources" className="hover:text-white transition-colors">Resources</Link>
-            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
           </div>
